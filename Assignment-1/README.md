@@ -2,111 +2,132 @@
 
 ## **LIBRARY ROBOT**
 
-**Author**
 
-**Name:** Pranshul Bhatnagar
-**NetID:** PB251
----
 
-**Scenario:**
+### **Scenario:**
 
 A robot in a library is tasked with organizing books and fetching requested books for users. Books can be on carts, shelves, or held by the robot. Users may request books, and the robot must fetch and deliver them. Shelves have limited space, so planning the order of reshelving is necessary.
 
-**Entities/Objects in the Domain:**
+### **Entities/Objects in the Domain:**
 
-* **Books** (b1, b2, …)
-* **Shelves** (s1, s2, …)
-* **Carts** (c1, …)
-* **Users** (u1, u2, …)
-* **Robot**
+- **Books**: Individual books requiring management (b₁, b₂, ...)
+- **Shelves**: Fixed storage locations within Library (s₁, s₂, ...)
+- **Carts**: Mobile storage units for temporary book placement.
+- **Users**: Library users who submit book requests (u₁, u₂, ...)
+- **Robot**: Autonomous agent executing management tasks
 
-**Robot’s Goal:**
 
-* Ensure all returned books are placed on shelves
-* Deliver requested books to users
+### **Robot’s Goal:**
 
-**Why Planning is Needed:**
+The robot system maintains two primary objectives:
 
-* The robot cannot just act reflexively:
+1. Ensure all returned books are placed on shelves.
+2. Deliver requested books to users.
 
-  * The robot cannot put a book on a shelf if it is full
-  * The robot cannot deliver a book before picking it, must fetch before delivering to user
-  * It needs to decide the order of actions (pick/move/deliver) to avoid conflicts
+### **Why Planning is Needed:**
+
+The robot cannot just act reflexively:
+- The robot cannot put a book on a shelf if it is full
+- The robot cannot deliver a book before picking it, must fetch before delivering to user
+- It needs to decide the order of actions (pick/move/deliver) to avoid conflicts
   
 Therefore, Reflex actions are insufficient because the state changes over time and actions have preconditions
-
 
 
 ## **STRIPS Formalization**
 
 ### **Predicates / Fluents**
+The system state is represented using the following predicates:
 
-* `At(book, location)` → book is at a location (shelf, cart or robot)
-* `Held(robot, book)` → robot is holding the book
-* `ShelfAvailable(shelf)` → shelf has space
-* `Request(book, user)` → user requested this book
-* `Delivered(book, user)` → book delivered to user
-* `OnCart(book, cart)` → book is on a cart
+- `At(book, location)`: Indicates a book's current location (shelf, cart, or robot)
+- `Held(robot, book)`: Indicates the robot is currently holding the specified book
+- `ShelfAvailable(shelf)`: Indicates the shelf has available capacity
+- `Request(book, user)`: Indicates a user has requested the specified book
+- `Delivered(book, user)`: Indicates the book has been successfully delivered to the user
 
 
 
 ### **Action Schemas**
 
-1. **Pick(book, location)**
+#### 1. Pick(book, location)
 
-   * **Preconditions:** `At(book, location)`, `RobotEmpty()`
-   * **Add:** `Held(robot, book)`
-   * **Delete:** `At(book, location)`, `RobotEmpty()`
+Retrieves a book from a specified location.
 
-2. **PlaceOnShelf(book, shelf)**
+- **Preconditions**: `At(book, location)`, `RobotEmpty()`
+- **Effects**: 
+  - Add: `Held(robot, book)`
+  - Delete: `At(book, location)`, `RobotEmpty()`
 
-   * **Preconditions:** `Held(robot, book)`, `ShelfAvailable(shelf)`
-   * **Add:** `At(book, shelf)`
-   * **Delete:** `Held(robot, book)`
+#### 2. PlaceOnShelf(book, shelf)
 
+Places a held book onto an available shelf.
 
-3. **FetchForUser(book, user)**
+- **Preconditions**: `Held(robot, book)`, `ShelfAvailable(shelf)`
+- **Effects**:
+  - Add: `At(book, shelf)`
+  - Delete: `Held(robot, book)`
 
-   * **Preconditions:** `At(book, shelf)`, `Request(book, user)`, `RobotEmpty()`
-   * **Add:** `Held(robot, book)`
-   * **Delete:** `At(book, shelf)`, `RobotEmpty()`
+#### 3. FetchForUser(book, user)
 
-4. **Deliver(book, user)**
+Retrieves a requested book from a shelf for delivery.
 
-   * **Preconditions:** `Held(robot, book)`, `Request(book, user)`
-   * **Add:** `Delivered(book, user)`
-   * **Delete:** `Held(robot, book)`, `Request(book, user)`
+- **Preconditions**: `At(book, shelf)`, `Request(book, user)`, `RobotEmpty()`
+- **Effects**:
+  - Add: `Held(robot, book)`
+  - Delete: `At(book, shelf)`, `RobotEmpty()`
+
+#### 4. Deliver(book, user)
+
+Delivers a held book to the requesting user.
+
+- **Preconditions**: `Held(robot, book)`, `Request(book, user)`
+- **Effects**:
+  - Add: `Delivered(book, user)`
+  - Delete: `Held(robot, book)`, `Request(book, user)`
 
 
 
 ## **Example Problem Instance**
 
-Lets say we have a library robot that needs to organize returned books and deliver requested books to users. Let’s go through the problem step by step.
+Let's say we have a library robot that needs to organize returned books and deliver requested books to users. Let’s go through the problem step by step.
 
 
-**Initial State:**
+### **Initial State:**
 
-* `At(b1, returned_cart)`
-* `At(b2, returned_cart)`
-* `ShelfAvailable(s1)`
-* `ShelfAvailable(s2)`
-* `Request(b3, u1)`
-* `At(b3, s1)`
-* `RobotEmpty()`
+```
+At(b1, returned_cart)
+At(b2, returned_cart)
+ShelfAvailable(s1)
+ShelfAvailable(s2)
+Request(b3, u1)
+At(b3, s1)
+RobotEmpty()
+```
 
-b1 and b2 are on the returned cart i.e., these are books that have ben returned and neds to be placed on shelves. b3 is on shelf S1 and this book is requested by user u1, so it needs to be delivered. Sheves s1 and s2 both have space for one book each. The robot is not holding any book at the start. user u1 has requested book b3.
+- Books b₁ and b₂ are located on the returned cart and require shelving
+- Book b₃ is currently on shelf s₁ and has been requested by user u₁
+- Shelves s₁ and s₂ each have capacity for one additional book
+- The robot is not currently holding any book
 
-**Goal State:**
+### **Goal State:**
 
-* `At(b1, s1)`
-* `At(b2, s2)`
-* `Delivered(b3, u1)`
+```
+At(b1, s1)
+At(b2, s2)
+Delivered(b3, u1)
+```
 
+**Objective:**
+- Book b₁ must be placed on shelf s₁
+- Book b₂ must be placed on shelf s₂
+- Book b₃ must be delivered to user u₁
 
+The robot must successfully complete both organizational tasks (shelving returned books) and service delivery (fulfilling the user request).
 
-The robot's goal is to complete both organisation and delivery tasks i.e., b1 should be on s1,  b2 should be on s2 and b3 should be delivered to u1
-
-
+---
+### **Author**
+**Name:** Pranshul Bhatnagar.   
+**NetID:** PB251
 
 ---
 
