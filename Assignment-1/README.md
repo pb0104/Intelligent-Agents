@@ -3,6 +3,7 @@
 ## **LIBRARY ROBOT**
 
 **Scenario:**
+
 A robot in a library is tasked with organizing books and fetching requested books for users. Books can be on carts, shelves, or held by the robot. Users may request books, and the robot must fetch and deliver them. Shelves have limited space, so planning the order of reshelving is necessary.
 
 **Entities/Objects in the Domain:**
