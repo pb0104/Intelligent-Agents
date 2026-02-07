@@ -73,7 +73,7 @@ Therefore, Reflex actions are insufficient because the state changes over time a
 
 
 
-### **Example Problem Instance**
+## **Example Problem Instance**
 
 Lets say we have a library robot that needs to organize returned books and deliver requested books to users. Let’s go through the problem step by step.
 
